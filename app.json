@@ -47,7 +47,8 @@
         {
           "cameraPermission": "Pocket VAR needs camera access to record football matches."
         }
-      ]
+      ],
+      "expo-video"
     ]
   }
 }

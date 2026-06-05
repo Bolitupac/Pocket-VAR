@@ -4,15 +4,17 @@
 
 ![Logo](assets/icon.svg)
 
+**Developer:** Nanbol Dassak ([@bolitupac](https://github.com/Bolitupac))
+
 ---
 
 ## Overview
 
 Pocket VAR turns your phone into a pitchside VAR station. While recording a match, tap buttons to mark **GOAL**, **FOUL**, **OFFSIDE**, **YELLOW CARD**, or **RED CARD** events. After the action, hit **REVIEW** to scrub through the last 60 seconds of footage frame-by-frame, analyze calls, and save clips as evidence.
 
-### Current Status — Checkpoint 1 ✅
+### Current Status — Checkpoint 3 ✅
 
-Project initialized, navigation wired up, theme set, all 4 screens stubbed. Ready for Checkpoint 2 (camera + recording + bookmark buttons).
+Camera records live video, bookmark buttons stamp real timestamps during recording. Review screen loads the last 60 seconds of footage with a scrubbable timeline, frame-by-frame stepping, playback controls, and bookmark markers on the timeline.
 
 ---
 
@@ -22,7 +24,7 @@ Project initialized, navigation wired up, theme set, all 4 screens stubbed. Read
 |-------|--------|
 | Framework | React Native (Expo SDK 56) |
 | Camera | `expo-camera` + recorder |
-| Playback | `expo-av` / `react-native-video` |
+| Playback | `expo-av` |
 | Storage | `expo-file-system` + `expo-sqlite` |
 | State | Zustand |
 | Navigation | React Navigation (Native Stack) |
@@ -54,8 +56,8 @@ pocket-var/
 
 | Screen | Description |
 |--------|-------------|
-| **Camera** | Full-screen camera preview. Top bar has bookmark buttons (GOAL, FOUL, OFFSIDE, YC, RC, REVIEW). Bottom bar has record button, clips library, and settings. |
-| **Review** | Video preview of last 60s. Timeline scrubber with waveform visualization. Frame-by-frame stepping. MARK FOUL / NO FOUL decision buttons. SAVE CLIP to export. |
+| **Camera** | Full-screen camera preview. Top bar has bookmark buttons (GOAL, FOUL, OFFSIDE, YC, RC, REVIEW). Bottom bar has record button, clips library, and settings. Recording shows elapsed timer with pulsing REC indicator. |
+| **Review** | Video player with the last 60 seconds of the current recording. Scrubbable timeline with waveform visualisation. Frame-by-frame stepping (⏪ / ⏩). Play/pause. Bookmark markers plotted on the timeline. MARK FOUL / NO FOUL decision buttons. |
 | **Clips** | Grid/list of all saved clips. Play, share, or delete. Filter by match or bookmark type. |
 | **Settings** | Video quality (720p/1080p), camera facing, max review window, auto-save toggle, storage usage, data management. |
 
@@ -65,9 +67,9 @@ To survive network drops, each checkpoint is a **self-contained, runnable state*
 
 | # | Checkpoint | Status |
 |---|-----------|--------|
-| 1 | Project skeleton + theme + navigation + logo | ✅ Done |
-| 2 | Camera screen — live preview, recording, bookmark buttons | ❌ |
-| 3 | Review screen — last 60s timeline + frame stepping | ❌ |
+| 1 | Project skeleton + theme + navigation + logo | ✅ |
+| 2 | Camera screen — live preview, recording, bookmark timestamps | ✅ |
+| 3 | Review screen — last 60s video, timeline scrub, frame stepping, bookmark markers | ✅ |
 | 4 | SQLite database — bookmarks, matches, clips persistence | ❌ |
 | 5 | Clips library — saved clips grid, play, share | ❌ |
 | 6 | Polish — edge cases, permissions, splash, orientation, app icon | ❌ |
@@ -111,4 +113,5 @@ Foul:          #FF6600
 
 ---
 
-> **Pocket VAR** — your pocket-sized video assistant referee. ⚽
+> **Pocket VAR** — your pocket-sized video assistant referee. ⚽  
+> Developed by **Nanbol Dassak** ([@bolitupac](https://github.com/Bolitupac))
