@@ -72,7 +72,7 @@ To survive network drops, each checkpoint is a **self-contained, runnable state*
 | 3 | Review screen — last 60s video, timeline scrub, frame stepping, bookmark markers | ✅ |
 | 4 | SQLite database — bookmarks, matches, clips persistence | ✅ |
 | 5 | Clips library — saved clips grid, play, share | ✅ |
-| 6 | Polish — edge cases, permissions, splash, orientation, app icon | ❌ |
+| 6 | Polish — flash toggle, zoom, error boundaries, storage manager, settings | ✅ |
 
 ## Future Roadmap
 

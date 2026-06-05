@@ -10,6 +10,7 @@ import {
   Animated,
   Vibration,
   Platform,
+  Switch,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as FileSystem from 'expo-file-system';
@@ -17,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import useAppStore from '../store/useAppStore';
+import { checkStorageAndWarn } from '../utils/storage';
 
 // ─── Logo ──────────────────────────────────────────────────
 function Logo({ size = 40 }) {
@@ -133,6 +135,8 @@ export default function CameraScreen() {
   const [flashColor, setFlashColor] = useState(null);
   const [toastType, setToastType] = useState(null);
   const [bannerVisible, setBannerVisible] = useState(true);
+  const [flash, setFlash] = useState('off');
+  const [zoom, setZoom] = useState(0);
 
   const {
     isRecording,
@@ -167,6 +171,8 @@ export default function CameraScreen() {
         'Pocket VAR needs camera access to record matches. Enable it in your device settings.'
       );
     }
+    // Check storage on mount
+    checkStorageAndWarn();
   }, [permission]);
 
   const handleRecord = useCallback(async () => {
@@ -276,6 +282,8 @@ export default function CameraScreen() {
         facing="back"
         mute={false}
         videoQuality="1080p"
+        flash={flash}
+        zoom={zoom}
       />
 
       {/* Flash overlay on bookmark */}
@@ -334,6 +342,31 @@ export default function CameraScreen() {
       {/* Logo watermark */}
       <View style={styles.watermark}>
         <Logo size={22} />
+      </View>
+
+      {/* Flash toggle */}
+      <TouchableOpacity style={styles.flashBtn} onPress={() => setFlash(flash === 'off' ? 'on' : flash === 'on' ? 'torch' : 'off')}>
+        <Text style={styles.flashIcon}>
+          {flash === 'off' ? '☀' : flash === 'on' ? '☀' : '🔦'}
+        </Text>
+        <Text style={styles.flashLabel}>
+          {flash === 'off' ? 'OFF' : flash === 'on' ? 'ON' : 'TORCH'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Zoom slider */}
+      <View style={styles.zoomContainer}>
+        <Text style={styles.zoomLabel}>1x</Text>
+        <View style={styles.zoomTrack}>
+          <View style={[styles.zoomFill, { width: `${zoom * 100}%` }]} />
+        </View>
+        <TouchableOpacity
+          style={styles.zoomThumb}
+          onPress={() => setZoom(zoom >= 0.5 ? 0 : 0.5)}
+        >
+          <Text style={styles.zoomThumbText}>{zoom === 0 ? '1×' : `${(1 + zoom * 4).toFixed(1)}×`}</Text>
+        </TouchableOpacity>
+        <Text style={styles.zoomLabel}>5x</Text>
       </View>
     </View>
   );
@@ -476,5 +509,58 @@ const styles = StyleSheet.create({
   // Watermark
   watermark: {
     position: 'absolute', top: 12, right: 14, opacity: 0.4,
+  },
+
+  // Flash toggle
+  flashBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 110 : 100,
+    left: 14,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  flashIcon: { fontSize: 20 },
+  flashLabel: { color: colors.text, fontSize: 9, fontWeight: '600', marginTop: 2 },
+
+  // Zoom slider
+  zoomContainer: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    marginTop: -60,
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 10,
+  },
+  zoomLabel: { color: colors.textDim, fontSize: 10, fontWeight: '500' },
+  zoomTrack: {
+    width: 4,
+    height: 80,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  zoomFill: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+    flex: 1,
+  },
+  zoomThumb: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+  },
+  zoomThumbText: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

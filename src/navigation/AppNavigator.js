@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { colors } from '../theme';
+import ErrorBoundary from '../components/ErrorBoundary';
 import CameraScreen from '../screens/CameraScreen';
 import ReviewScreen from '../screens/ReviewScreen';
 import ClipsScreen from '../screens/ClipsScreen';
@@ -35,17 +36,27 @@ export default function AppNavigator() {
       <Stack.Navigator screenOptions={screenOptions}>
         <Stack.Screen
           name="Camera"
-          component={CameraScreen}
           options={{ headerShown: false }}
-        />
+        >
+          {() => (
+            <ErrorBoundary>
+              <CameraScreen />
+            </ErrorBoundary>
+          )}
+        </Stack.Screen>
         <Stack.Screen
           name="Review"
-          component={ReviewScreen}
           options={{
             title: 'Review',
             headerBackTitle: 'Camera',
           }}
-        />
+        >
+          {() => (
+            <ErrorBoundary>
+              <ReviewScreen />
+            </ErrorBoundary>
+          )}
+        </Stack.Screen>
         <Stack.Screen
           name="Clips"
           component={ClipsScreen}
