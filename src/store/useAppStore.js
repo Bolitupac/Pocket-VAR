@@ -1,29 +1,39 @@
 import { create } from 'zustand';
-
-/**
- * Pocket VAR — Global State
- */
+import {
+  createMatch as dbCreateMatch,
+  updateMatchDuration,
+  updateMatchVideoPath,
+  getAllMatches,
+  getBookmarksForMatch,
+  getAllClips,
+  createBookmark as dbCreateBookmark,
+  queueBookmark,
+  flushBookmarks,
+} from '../utils/database';
 
 let bookmarkCounter = 0;
 
 const useAppStore = create((set, get) => ({
-  // Recording state
+  // ── Database ready flag ──────────────────────────────
+  dbReady: false,
+
+  // ── Recording state ──────────────────────────────────
   isRecording: false,
   recordingStartTime: null,
   elapsedSeconds: 0,
   currentMatchId: null,
   currentVideoPath: null,
 
-  // Data
+  // ── Data (loaded from SQLite) ────────────────────────
   matches: [],
   bookmarks: [],
   clips: [],
 
-  // UI
+  // ── UI ───────────────────────────────────────────────
   isReviewing: false,
   reviewBookmark: null,
 
-  // Settings
+  // ── Settings ─────────────────────────────────────────
   settings: {
     videoQuality: '1080p',
     autoSaveClips: true,
@@ -31,21 +41,58 @@ const useAppStore = create((set, get) => ({
     cameraFacing: 'back',
   },
 
+  // ── Load all data from SQLite into memory ────────────
+  loadFromDatabase: async () => {
+    try {
+      const matches = await getAllMatches();
+      // Load bookmarks for the most recent match
+      let bookmarks = [];
+      if (matches.length > 0) {
+        bookmarks = await getBookmarksForMatch(matches[0].id);
+      }
+      const clips = await getAllClips();
+      set({ matches, bookmarks, clips, dbReady: true });
+      console.log(`[Store] Loaded ${matches.length} matches, ${bookmarks.length} bookmarks, ${clips.length} clips`);
+    } catch (e) {
+      console.error('[Store] Load error:', e);
+      set({ dbReady: true });
+    }
+  },
+
   // ── Recording ────────────────────────────────────────
-  startRecording: (matchId) =>
+  startRecording: (matchId) => {
+    const date = new Date().toISOString();
+    // Save match to SQLite immediately
+    dbCreateMatch(matchId, null, date).catch(console.error);
     set({
       isRecording: true,
       recordingStartTime: Date.now(),
       elapsedSeconds: 0,
       currentMatchId: matchId,
-    }),
+    });
+  },
 
-  stopRecording: (videoPath) =>
+  stopRecording: async (videoPath) => {
+    const state = get();
+    const elapsed = Math.floor((Date.now() - state.recordingStartTime) / 1000);
+
+    // Flush any queued bookmarks
+    await flushBookmarks();
+
+    // Update match in DB
+    if (state.currentMatchId) {
+      await updateMatchDuration(state.currentMatchId, elapsed).catch(console.error);
+      if (videoPath) {
+        await updateMatchVideoPath(state.currentMatchId, videoPath).catch(console.error);
+      }
+    }
+
     set({
       isRecording: false,
       recordingStartTime: null,
       currentVideoPath: videoPath,
-    }),
+    });
+  },
 
   tickElapsed: () =>
     set((state) => ({
@@ -55,8 +102,14 @@ const useAppStore = create((set, get) => ({
     })),
 
   // ── Matches ──────────────────────────────────────────
+  // In-memory add for snap reactivity. DB write happens in startRecording.
   addMatch: (match) =>
     set((state) => ({ matches: [...state.matches, match] })),
+
+  refreshMatches: async () => {
+    const matches = await getAllMatches();
+    set({ matches });
+  },
 
   // ── Bookmarks ────────────────────────────────────────
   addBookmark: (type) => {
@@ -64,16 +117,28 @@ const useAppStore = create((set, get) => ({
     if (!state.isRecording || !state.currentMatchId) return null;
 
     const elapsed = Math.floor((Date.now() - state.recordingStartTime) / 1000);
+    const id = `bm_${Date.now()}_${++bookmarkCounter}`;
     const bookmark = {
-      id: `bm_${Date.now()}_${++bookmarkCounter}`,
+      id,
       matchId: state.currentMatchId,
       type,
       timestampSeconds: elapsed,
       createdAt: new Date().toISOString(),
     };
 
+    // Queue for batch SQLite write (flushes every 2s during recording)
+    queueBookmark(id, state.currentMatchId, elapsed, type);
+
+    // Update memory immediately for UI reactivity
     set((s) => ({ bookmarks: [...s.bookmarks, bookmark] }));
     return bookmark;
+  },
+
+  refreshBookmarks: async (matchId) => {
+    const bookmarks = matchId
+      ? await getBookmarksForMatch(matchId)
+      : [];
+    set({ bookmarks });
   },
 
   // ── Review ───────────────────────────────────────────
