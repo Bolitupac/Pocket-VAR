@@ -70,7 +70,7 @@ To survive network drops, each checkpoint is a **self-contained, runnable state*
 | 1 | Project skeleton + theme + navigation + logo | ✅ |
 | 2 | Camera screen — live preview, recording, bookmark timestamps | ✅ |
 | 3 | Review screen — last 60s video, timeline scrub, frame stepping, bookmark markers | ✅ |
-| 4 | SQLite database — bookmarks, matches, clips persistence | ❌ |
+| 4 | SQLite database — bookmarks, matches, clips persistence | ✅ |
 | 5 | Clips library — saved clips grid, play, share | ❌ |
 | 6 | Polish — edge cases, permissions, splash, orientation, app icon | ❌ |
 
