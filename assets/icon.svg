@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#0D0D0D"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="256" cy="220" r="140" stroke="#00FF88" stroke-width="12" opacity="0.15" fill="none"/>
+
+  <!-- Shield -->
+  <path d="M256 40 L420 80 L420 240 C420 340 340 400 256 420 C172 400 92 340 92 240 L92 80 Z" fill="rgba(0,255,136,0.08)" stroke="#00FF88" stroke-width="8"/>
+
+  <!-- Football / Hex pattern -->
+  <path d="M256 140 L320 180 L320 260 L256 300 L192 260 L192 180 Z" stroke="#00FF88" stroke-width="6" fill="none" stroke-linejoin="round"/>
+  <path d="M256 140 L256 220 M192 180 L256 220 L320 180" stroke="#00FF88" stroke-width="5" fill="none" stroke-linejoin="round"/>
+  <line x1="192" y1="260" x2="256" y2="220" stroke="#00FF88" stroke-width="5"/>
+  <line x1="320" y1="260" x2="256" y2="220" stroke="#00FF88" stroke-width="5"/>
+
+  <!-- VAR text -->
+  <text x="256" y="365" text-anchor="middle" fill="#00FF88" font-family="monospace" font-size="44" font-weight="bold" letter-spacing="6">VAR</text>
+
+  <!-- Bottom bar -->
+  <line x1="140" y1="480" x2="372" y2="480" stroke="#00FF88" stroke-width="3" opacity="0.4"/>
+</svg>
