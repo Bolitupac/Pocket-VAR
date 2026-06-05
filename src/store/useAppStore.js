@@ -2,21 +2,24 @@ import { create } from 'zustand';
 
 /**
  * Pocket VAR — Global State
- * Lightweight Zustand store for cross-screen state
  */
+
+let bookmarkCounter = 0;
 
 const useAppStore = create((set, get) => ({
   // Recording state
   isRecording: false,
   recordingStartTime: null,
+  elapsedSeconds: 0,
   currentMatchId: null,
+  currentVideoPath: null,
 
-  // Match data
+  // Data
   matches: [],
   bookmarks: [],
   clips: [],
 
-  // UI state
+  // UI
   isReviewing: false,
   reviewBookmark: null,
 
@@ -25,25 +28,59 @@ const useAppStore = create((set, get) => ({
     videoQuality: '1080p',
     autoSaveClips: true,
     maxReviewSeconds: 60,
-    storageUsed: 0,
     cameraFacing: 'back',
   },
 
-  // Actions
-  setRecording: (recording, startTime) =>
-    set({ isRecording: recording, recordingStartTime: startTime }),
+  // ── Recording ────────────────────────────────────────
+  startRecording: (matchId) =>
+    set({
+      isRecording: true,
+      recordingStartTime: Date.now(),
+      elapsedSeconds: 0,
+      currentMatchId: matchId,
+    }),
 
-  setCurrentMatch: (matchId) => set({ currentMatchId: matchId }),
+  stopRecording: (videoPath) =>
+    set({
+      isRecording: false,
+      recordingStartTime: null,
+      currentVideoPath: videoPath,
+    }),
 
-  addBookmark: (bookmark) =>
-    set((state) => ({ bookmarks: [...state.bookmarks, bookmark] })),
+  tickElapsed: () =>
+    set((state) => ({
+      elapsedSeconds: state.isRecording
+        ? Math.floor((Date.now() - state.recordingStartTime) / 1000)
+        : state.elapsedSeconds,
+    })),
 
+  // ── Matches ──────────────────────────────────────────
   addMatch: (match) =>
     set((state) => ({ matches: [...state.matches, match] })),
 
+  // ── Bookmarks ────────────────────────────────────────
+  addBookmark: (type) => {
+    const state = get();
+    if (!state.isRecording || !state.currentMatchId) return null;
+
+    const elapsed = Math.floor((Date.now() - state.recordingStartTime) / 1000);
+    const bookmark = {
+      id: `bm_${Date.now()}_${++bookmarkCounter}`,
+      matchId: state.currentMatchId,
+      type,
+      timestampSeconds: elapsed,
+      createdAt: new Date().toISOString(),
+    };
+
+    set((s) => ({ bookmarks: [...s.bookmarks, bookmark] }));
+    return bookmark;
+  },
+
+  // ── Review ───────────────────────────────────────────
   setReviewing: (isReviewing, bookmark = null) =>
     set({ isReviewing, reviewBookmark: bookmark }),
 
+  // ── Settings ─────────────────────────────────────────
   updateSettings: (settings) =>
     set((state) => ({ settings: { ...state.settings, ...settings } })),
 }));

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,86 +7,120 @@ import {
   StatusBar,
   SafeAreaView,
   Alert,
+  Animated,
+  Vibration,
+  Platform,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as FileSystem from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import useAppStore from '../store/useAppStore';
 
-// ─── Logo Component ───────────────────────────────────────
+// ─── Logo ──────────────────────────────────────────────────
 function Logo({ size = 40 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-      {/* Shield outline */}
       <Path
         d="M50 5 L90 20 L90 50 C90 75 70 92 50 97 C30 92 10 75 10 50 L10 20 Z"
-        stroke={colors.primary}
-        strokeWidth={4}
-        fill={colors.primaryDim}
+        stroke={colors.primary} strokeWidth={4} fill={colors.primaryDim}
       />
-      {/* Football hex pattern */}
       <Path
         d="M50 30 L65 40 L65 55 L50 65 L35 55 L35 40 Z"
-        stroke={colors.primary}
-        strokeWidth={2.5}
-        fill="none"
+        stroke={colors.primary} strokeWidth={2.5} fill="none"
       />
-      {/* Inner lines */}
       <Path
         d="M50 30 L50 45 M35 40 L50 45 L65 40 M35 55 L50 45 L65 55"
-        stroke={colors.primary}
-        strokeWidth={2}
-        fill="none"
-      />
-      {/* VAR text */}
-      <Path
-        d="M40 70 L42 70 L44 76 L46 70 L48 70 M42 73 L46 73 M50 70 L52 70 L52 76 L54 70 L56 70 L56 76 L54 76 M58 70 L58 76 L60 76 L62 73 L60 70 L58 70"
-        stroke={colors.primary}
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
+        stroke={colors.primary} strokeWidth={2} fill="none"
       />
     </Svg>
   );
 }
 
 // ─── Bookmark Button ───────────────────────────────────────
-function BookmarkButton({ label, color, icon, onPress }) {
+function BookmarkButton({ label, color, icon, disabled, onPress }) {
   return (
     <TouchableOpacity
-      style={[styles.bookmarkBtn, { borderColor: color }]}
+      style={[
+        styles.bookmarkBtn,
+        { borderColor: color, opacity: disabled ? 0.35 : 1 },
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
+      disabled={disabled}
     >
-      <Text style={[styles.bookmarkIcon]}>{icon}</Text>
+      <Text style={styles.bookmarkIcon}>{icon}</Text>
       <Text style={[styles.bookmarkLabel, { color }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-// ─── Recording Dot ─────────────────────────────────────────
-function RecordingDot({ isRecording }) {
-  const [pulse, setPulse] = useState(false);
+// ─── Elapsed Timer ─────────────────────────────────────────
+function ElapsedTimer({ seconds }) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  return (
+    <View style={styles.timerContainer}>
+      <View style={styles.timerDot} />
+      <Text style={styles.timerText}>REC {pad(m)}:{pad(s)}</Text>
+    </View>
+  );
+}
+
+// ─── Flash Overlay ─────────────────────────────────────────
+function FlashOverlay({ color, visible }) {
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!isRecording) return;
-    const interval = setInterval(() => setPulse((p) => !p), 600);
-    return () => clearInterval(interval);
-  }, [isRecording]);
+    if (visible) {
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.6, duration: 60, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
 
-  if (!isRecording) return null;
+  if (!visible) return null;
 
   return (
-    <View style={styles.recordingIndicator}>
-      <View
-        style={[
-          styles.recordingDot,
-          { opacity: pulse ? 0.4 : 1 },
-        ]}
-      />
-      <Text style={styles.recordingText}>REC</Text>
+    <Animated.View
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, { backgroundColor: color, opacity }]}
+    />
+  );
+}
+
+// ─── Bookmark Toast ────────────────────────────────────────
+function BookmarkToast({ type, visible }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.delay(400),
+        Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <Animated.View pointerEvents="none" style={[styles.toast, { opacity }]}>
+      <Text style={styles.toastText}>{type.toUpperCase()} ✓</Text>
+    </Animated.View>
+  );
+}
+
+// ─── Not Recording Overlay ─────────────────────────────────
+function NotRecordingBanner({ visible }) {
+  if (!visible) return null;
+  return (
+    <View style={styles.notRecordingBanner} pointerEvents="none">
+      <Text style={styles.notRecordingText}>Tap ▶ to start recording</Text>
     </View>
   );
 }
@@ -96,36 +130,115 @@ export default function CameraScreen() {
   const navigation = useNavigation();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
-  const { isRecording, setRecording } = useAppStore();
+  const [flashColor, setFlashColor] = useState(null);
+  const [toastType, setToastType] = useState(null);
+  const [bannerVisible, setBannerVisible] = useState(true);
 
+  const {
+    isRecording,
+    elapsedSeconds,
+    startRecording,
+    stopRecording,
+    tickElapsed,
+    addBookmark,
+    addMatch,
+    currentMatchId,
+  } = useAppStore();
+
+  // Elapsed timer tick
   useEffect(() => {
-    if (!permission?.granted) requestPermission();
+    if (!isRecording) return;
+    const interval = setInterval(() => tickElapsed(), 200);
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
+  // Hide "not recording" banner after 4s
+  useEffect(() => {
+    if (isRecording) setBannerVisible(false);
+    const t = setTimeout(() => setBannerVisible(false), 4000);
+    return () => clearTimeout(t);
   }, []);
 
-  const handleRecord = async () => {
-    if (isRecording) {
-      await cameraRef.current?.stopRecording();
-      setRecording(false);
-    } else {
-      setRecording(true);
-      try {
+  // Permission auto-request
+  useEffect(() => {
+    if (permission && !permission.granted && !permission.canAskAgain) {
+      Alert.alert(
+        'Camera Required',
+        'Pocket VAR needs camera access to record matches. Enable it in your device settings.'
+      );
+    }
+  }, [permission]);
+
+  const handleRecord = useCallback(async () => {
+    try {
+      if (isRecording) {
+        // ── STOP ──
+        await cameraRef.current?.stopRecording();
+        stopRecording(null);
+      } else {
+        // ── START ──
+        const matchId = `match_${Date.now()}`;
+        startRecording(matchId);
+        addMatch({
+          id: matchId,
+          date: new Date().toISOString(),
+          durationSeconds: 0,
+          bookmarks: 0,
+        });
+
         const video = await cameraRef.current?.recordAsync();
-        console.log('Video saved:', video?.uri);
-      } catch (e) {
-        console.log('Record error:', e);
+        if (video?.uri) {
+          // Move to persistent storage
+          const destDir = `${FileSystem.documentDirectory}matches/${matchId}`;
+          await FileSystem.makeDirectoryAsync(destDir, { intermediates: true });
+          const destPath = `${destDir}/recording.mp4`;
+          await FileSystem.moveAsync({ from: video.uri, to: destPath });
+          stopRecording(destPath);
+        } else {
+          stopRecording(null);
+        }
       }
-      setRecording(false);
+    } catch (e) {
+      console.error('Record error:', e);
+      stopRecording(null);
+      Alert.alert('Recording Error', e.message || 'Could not complete recording.');
     }
-  };
+  }, [isRecording]);
 
-  const handleBookmark = (type) => {
-    if (!isRecording) {
-      Alert.alert('Not Recording', 'Start recording first to mark moments.');
-      return;
-    }
-    console.log(`Bookmark: ${type} at`, Date.now());
-  };
+  const handleBookmark = useCallback(
+    (type) => {
+      if (!isRecording) {
+        setBannerVisible(true);
+        setTimeout(() => setBannerVisible(false), 3000);
+        return;
+      }
 
+      const bookmark = addBookmark(type);
+      if (!bookmark) return;
+
+      // Haptic
+      try { Vibration.vibrate(20); } catch {}
+
+      // Flash
+      const flashColors = {
+        goal: colors.goal,
+        foul: colors.foul,
+        offside: colors.offside,
+        yellow_card: colors.yellowCard,
+        red_card: colors.redCard,
+      };
+      setFlashColor(flashColors[type] || colors.primary);
+      setTimeout(() => setFlashColor(null), 300);
+
+      // Toast
+      const labels = { goal: 'GOAL', foul: 'FOUL', offside: 'OFFSIDE', yellow_card: 'YC', red_card: 'RC' };
+      setToastType(labels[type] || type);
+      setTimeout(() => setToastType(null), 600);
+    },
+    [isRecording]
+  );
+
+  // ── Permission Not Granted ─────────────────────────────
   if (!permission?.granted) {
     return (
       <SafeAreaView style={styles.container}>
@@ -136,14 +249,21 @@ export default function CameraScreen() {
           <Text style={[typography.bodySmall, { textAlign: 'center', marginTop: 10, paddingHorizontal: 40 }]}>
             Pocket VAR needs camera access to record matches.
           </Text>
-          <TouchableOpacity style={styles.permitBtn} onPress={requestPermission}>
-            <Text style={[typography.button, { color: colors.background }]}>Grant Access</Text>
-          </TouchableOpacity>
+          {permission?.canAskAgain !== false ? (
+            <TouchableOpacity style={styles.permitBtn} onPress={requestPermission}>
+              <Text style={[typography.button, { color: colors.background }]}>Grant Access</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={[typography.caption, { marginTop: 20, textAlign: 'center', paddingHorizontal: 40 }]}>
+              Camera permission was permanently denied. Go to Settings > Apps > Pocket VAR > Permissions to enable.
+            </Text>
+          )}
         </View>
       </SafeAreaView>
     );
   }
 
+  // ── Main UI ────────────────────────────────────────────
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
@@ -155,27 +275,45 @@ export default function CameraScreen() {
         mode="video"
         facing="back"
         mute={false}
+        videoQuality="1080p"
       />
 
-      {/* Dark overlay at top for button contrast */}
-      <View style={styles.topOverlay}>
-        <RecordingDot isRecording={isRecording} />
-      </View>
+      {/* Flash overlay on bookmark */}
+      <FlashOverlay color={flashColor} visible={!!flashColor} />
 
-      {/* Bookmark Buttons — Top Row */}
+      {/* Bookmark toast */}
+      <BookmarkToast type={toastType} visible={!!toastType} />
+
+      {/* Top overlay gradient */}
+      <View style={styles.topOverlay} />
+
+      {/* Elapsed timer / Rec indicator */}
+      {isRecording && <ElapsedTimer seconds={elapsedSeconds} />}
+      <NotRecordingBanner visible={bannerVisible && !isRecording} />
+
+      {/* Bookmark buttons row */}
       <View style={styles.topBar}>
-        <BookmarkButton label="REVIEW" color={colors.primary} icon="◉" onPress={() => navigation.navigate('Review')} />
-        <BookmarkButton label="GOAL" color={colors.goal} icon="⚽" onPress={() => handleBookmark('goal')} />
-        <BookmarkButton label="FOUL" color={colors.foul} icon="⚠" onPress={() => handleBookmark('foul')} />
-        <BookmarkButton label="OFFSIDE" color={colors.offside} icon="🚩" onPress={() => handleBookmark('offside')} />
-        <BookmarkButton label="YC" color={colors.yellowCard} icon="🟨" onPress={() => handleBookmark('yellow_card')} />
-        <BookmarkButton label="RC" color={colors.redCard} icon="🟥" onPress={() => handleBookmark('red_card')} />
+        <BookmarkButton
+          label="REVIEW"
+          color={colors.primary}
+          icon="◉"
+          disabled={isRecording}
+          onPress={() => {
+            if (currentMatchId) navigation.navigate('Review');
+            else Alert.alert('No Match', 'Record a match first before reviewing.');
+          }}
+        />
+        <BookmarkButton label="GOAL" color={colors.goal} icon="⚽" disabled={false} onPress={() => handleBookmark('goal')} />
+        <BookmarkButton label="FOUL" color={colors.foul} icon="⚠" disabled={false} onPress={() => handleBookmark('foul')} />
+        <BookmarkButton label="OFF" color={colors.offside} icon="🚩" disabled={false} onPress={() => handleBookmark('offside')} />
+        <BookmarkButton label="YC" color={colors.yellowCard} icon="🟨" disabled={false} onPress={() => handleBookmark('yellow_card')} />
+        <BookmarkButton label="RC" color={colors.redCard} icon="🟥" disabled={false} onPress={() => handleBookmark('red_card')} />
       </View>
 
-      {/* Bottom Controls */}
+      {/* Bottom controls */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.navigate('Settings')}>
-          <Text style={styles.settingsIcon}>⚙</Text>
+        <TouchableOpacity style={styles.sideBtn} onPress={() => navigation.navigate('Settings')}>
+          <Text style={styles.sideIcon}>⚙</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -188,14 +326,14 @@ export default function CameraScreen() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.navigate('Clips')}>
-          <Text style={styles.settingsIcon}>🎬</Text>
+        <TouchableOpacity style={styles.sideBtn} onPress={() => navigation.navigate('Clips')}>
+          <Text style={styles.sideIcon}>🎬</Text>
         </TouchableOpacity>
       </View>
 
       {/* Logo watermark */}
       <View style={styles.watermark}>
-        <Logo size={24} />
+        <Logo size={22} />
       </View>
     </View>
   );
@@ -203,15 +341,11 @@ export default function CameraScreen() {
 
 // ─── Styles ────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+
+  // Permission screen
   centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20,
   },
   permitBtn: {
     marginTop: 24,
@@ -221,125 +355,126 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
 
-  // Top bar with bookmark buttons
+  // Top bar
+  topOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0,
+    height: Platform.OS === 'ios' ? 120 : 100,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
   topBar: {
     position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
+    top: Platform.OS === 'ios' ? 70 : 60,
+    left: 0, right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
+    gap: 5,
+    paddingHorizontal: 8,
     flexWrap: 'wrap',
   },
-  topOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-
-  // Bookmark button
   bookmarkBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     borderWidth: 1,
     borderRadius: borderRadius.md,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
+    gap: 3,
   },
-  bookmarkIcon: {
-    fontSize: 12,
-  },
-  bookmarkLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+  bookmarkIcon: { fontSize: 11 },
+  bookmarkLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
 
-  // Recording indicator
-  recordingIndicator: {
+  // Timer
+  timerContainer: {
     position: 'absolute',
-    top: 12,
-    left: 16,
+    top: Platform.OS === 'ios' ? 8 : 10,
+    left: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    zIndex: 10,
   },
-  recordingDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  timerDot: {
+    width: 8, height: 8, borderRadius: 4,
     backgroundColor: colors.recording,
   },
-  recordingText: {
+  timerText: {
     color: colors.recording,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
+    fontVariant: ['tabular-nums'],
+  },
+
+  // Not recording banner
+  notRecordingBanner: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 100 : 90,
+    left: 0, right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  notRecordingText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: borderRadius.round,
+    overflow: 'hidden',
+  },
+
+  // Toast
+  toast: {
+    position: 'absolute',
+    top: '40%',
+    left: 0, right: 0,
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  toastText: {
+    color: colors.primary,
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: 3,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
 
   // Bottom bar
   bottomBar: {
     position: 'absolute',
     bottom: 40,
-    left: 0,
-    right: 0,
+    left: 0, right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 40,
   },
   recordBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 72, height: 72, borderRadius: 36,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: colors.text,
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 3, borderColor: colors.text,
   },
-  recordBtnActive: {
-    borderColor: colors.recording,
-  },
+  recordBtnActive: { borderColor: colors.recording },
   recordInner: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 54, height: 54, borderRadius: 27,
     backgroundColor: colors.recording,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center', alignItems: 'center',
   },
-  recordInnerActive: {
-    backgroundColor: '#CC0022',
-  },
-  recordText: {
-    fontSize: 22,
-    color: colors.text,
-  },
-  settingsBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  recordInnerActive: { backgroundColor: '#CC0022' },
+  recordText: { fontSize: 22, color: colors.text },
+  sideBtn: {
+    width: 48, height: 48, borderRadius: 24,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center', alignItems: 'center',
   },
-  settingsIcon: {
-    fontSize: 22,
-  },
+  sideIcon: { fontSize: 22 },
 
   // Watermark
   watermark: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    opacity: 0.5,
+    position: 'absolute', top: 12, right: 14, opacity: 0.4,
   },
 });
