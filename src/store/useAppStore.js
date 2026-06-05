@@ -141,6 +141,20 @@ const useAppStore = create((set, get) => ({
     set({ bookmarks });
   },
 
+  // ── Clips ────────────────────────────────────────────
+  refreshClips: async () => {
+    const clips = await getAllClips();
+    set({ clips });
+  },
+
+  addClipToList: (clip) =>
+    set((state) => ({ clips: [clip, ...state.clips] })),
+
+  removeClip: (clipId) =>
+    set((state) => ({
+      clips: state.clips.filter((c) => c.id !== clipId),
+    })),
+
   // ── Review ───────────────────────────────────────────
   setReviewing: (isReviewing, bookmark = null) =>
     set({ isReviewing, reviewBookmark: bookmark }),
