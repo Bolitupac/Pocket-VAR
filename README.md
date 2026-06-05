@@ -1,18 +1,51 @@
 # ⚽ Pocket VAR
 
-> **Single-phone VAR system for football matches.** Record, bookmark key moments, and review the last 60 seconds frame-by-frame — all from one Android device.
-
-![Logo](assets/icon.svg)
+> **A single-phone VAR system for football matches.**  
+> Record. Bookmark. Review. Save clips. All offline, all on-device.
 
 **Developer:** Nanbol Dassak ([@bolitupac](https://github.com/Bolitupac))
 
 ---
 
-## Overview
+## What It Is
 
-Pocket VAR turns your phone into a pitchside VAR station. While recording a match, tap buttons to mark **GOAL**, **FOUL**, **OFFSIDE**, **YELLOW CARD**, or **RED CARD** events. After the action, hit **REVIEW** to scrub through the last 60 seconds of footage frame-by-frame, analyze calls, and save clips as evidence.
+Pocket VAR is a mobile VAR (Video Assistant Referee) system built in **React Native (Expo SDK 56)**. It turns a single Android phone into a pitchside officiating tool.
 
-All 6 development checkpoints complete. App is fully functional and ready for testing on Android.
+You record a football match, tap buttons to timestamp key events — **GOAL**, **FOUL**, **OFFSIDE**, **YELLOW CARD**, **RED CARD** — then instantly jump into a review screen to scrub through the last 60 seconds of footage frame-by-frame and save clips as evidence. Everything is **offline-first** and stored locally via SQLite. No internet. No accounts. No data ever leaves the device.
+
+This isn't a dashcam or a highlights app. It's a **decision-making tool** — built for referees, coaches, and analysts who need to make the right call in real time, on the pitch, with one hand.
+
+---
+
+## How It Works
+
+**1. Record**  
+Open the app and tap ▶ to start recording. The camera runs in the background while you ref the match. A live elapsed timer tells you how long you've been rolling.
+
+**2. Bookmark**  
+When something happens — a foul, a goal, a close offside — tap the relevant button. That moment is timestamped to the millisecond. You get a coloured screen flash and a haptic pulse so you know it registered without taking your eyes off the pitch.
+
+**3. Review**  
+Tap **REVIEW** from the camera screen. You land on a video player showing the last 60 seconds of footage. A waveform timeline shows where your bookmarks sit. Scrub to any moment, step frame-by-frame (33ms per step), and watch it as many times as you need.
+
+**4. Save**  
+Save the key moment as a clip. It gets stored in your library with a type badge, thumbnail, and timestamp. You can share it instantly or delete it to free space.
+
+---
+
+## Screens
+
+### 📷 Camera
+Full-screen live preview with a bookmark button bar across the top. Flash toggle (OFF / ON / TORCH). Zoom control. Live REC timer. Bookmark taps trigger a coloured flash overlay matched to the event type — green for goal, orange for foul, red for red card. A storage warning fires automatically if your device is running low.
+
+### 🎞 Review
+The VAR room in your pocket. The last 60 seconds of your recording, with a draggable waveform timeline underneath. Coloured dots mark each bookmarked event. Step through the footage one frame at a time with the ⏪ / ⏩ controls. MARK FOUL, NO FOUL, and SAVE CLIP buttons let you log your decision and export the moment.
+
+### 🎬 Clips
+A 2-column grid of every saved clip. Each card shows the event type badge, duration, and date. Tap any card to open a fullscreen video player. Share via the system share sheet or delete the clip with file and database cleanup. Pull-to-refresh. Auto-refreshes every time you navigate here.
+
+### ⚙️ Settings
+Video quality, max review window. A real-time storage bar showing how much of your device's disk is used, colour-coded by severity (green → yellow → red). A breakdown of how much Pocket VAR data specifically is taking up. One-tap **Delete All Recordings** to nuke raw recordings and free space while keeping all your saved clips.
 
 ---
 
@@ -23,75 +56,99 @@ All 6 development checkpoints complete. App is fully functional and ready for te
 | Framework | React Native (Expo SDK 56) |
 | Camera | `expo-camera` + recorder |
 | Playback | `expo-video` |
-| Database | `expo-sqlite` (3 tables: matches, bookmarks, clips) |
+| Database | `expo-sqlite` (WAL mode — 3 tables) |
 | Storage | `expo-file-system` |
 | State | Zustand |
 | Navigation | React Navigation (Native Stack) |
 | Sharing | `expo-sharing` |
-| Icons | `react-native-svg` (custom shield + football) |
+| Thumbnails | `expo-video-thumbnails` |
+| Icons | `react-native-svg` (custom shield SVG logo) |
 
-## Project Structure
+---
+
+## Architecture
 
 ```
 pocket-var/
 ├── App.js                          # Root — DB init → splash → navigator
 ├── app.json                        # Expo config (permissions, splash, theme)
-├── assets/                         # Icons, logo SVG, android assets
-├── src/
-│   ├── components/
-│   │   └── ErrorBoundary.js        # Catches crashes, shows retry screen
-│   ├── navigation/
-│   │   └── AppNavigator.js         # Stack: Camera → Review → Clips → Settings
-│   ├── screens/
-│   │   ├── CameraScreen.js         # Live preview, recording, bookmarks, flash, zoom
-│   │   ├── ReviewScreen.js         # Last 60s player, timeline scrub, frame step
-│   │   ├── ClipsScreen.js          # Saved clips grid, play modal, share, delete
-│   │   └── SettingsScreen.js       # Quality, storage, about, delete recordings
-│   ├── store/
-│   │   └── useAppStore.js          # Zustand + SQLite sync
-│   ├── theme/
-│   │   └── index.js                # Colors (#0D0D0D / #00FF88), spacing, type
-│   └── utils/
-│       ├── database.js             # SQLite CRUD + batch bookmark writer
-│       └── storage.js              # Free space monitor, usage tracker, cleanup
+├── assets/                         # Icons, logo SVG
+└── src/
+    ├── components/
+    │   └── ErrorBoundary.js        # Catches crashes, shows retry screen
+    ├── navigation/
+    │   └── AppNavigator.js         # Stack: Camera → Review → Clips → Settings
+    ├── screens/
+    │   ├── CameraScreen.js         # Live preview, recording, bookmarks, flash, zoom
+    │   ├── ReviewScreen.js         # Last 60s player, timeline scrub, frame step
+    │   ├── ClipsScreen.js          # Saved clips grid, play modal, share, delete
+    │   └── SettingsScreen.js       # Quality, storage, about, delete recordings
+    ├── store/
+    │   └── useAppStore.js          # Zustand store + SQLite sync
+    ├── theme/
+    │   └── index.js                # Colors, spacing, typography, border radius
+    └── utils/
+        ├── database.js             # SQLite CRUD + batch bookmark writer
+        └── storage.js              # Free space monitor, usage tracker, cleanup
 ```
 
-## Screens
+---
 
-| Screen | Description |
-|--------|-------------|
-| **Camera** | Full-screen camera preview. Top bar has bookmark buttons (GOAL, FOUL, OFFSIDE, YC, RC, REVIEW). Flash toggle (OFF/ON/TORCH). Zoom toggle (1x–5x). Recording shows MM:SS elapsed timer with pulsing REC dot. Bottom bar has record, clips, settings. Coloured flash + haptic on bookmark tap. Storage warning on launch. |
-| **Review** | Video player with the last 60s of the current recording. Draggable timeline with waveform bars and coloured bookmark dots. Frame-by-frame stepping (⏪/⏩ at 33ms per frame). Play/pause with overlay. MARK FOUL / NO FOUL / SAVE CLIP buttons. Position timestamp display. |
-| **Clips** | 2-column grid of saved clips with type badges and duration. Tap to open fullscreen video player modal. Share via system share sheet. Delete with confirmation (removes file + DB record). Pull-to-refresh. Auto-refresh on focus. |
-| **Settings** | Video quality, max review window. Real-time storage bar showing device usage. App data breakdown (match count, clip count). Delete All Recordings button (frees space, keeps clips). About section with developer credit. |
+## Key Design Decisions
+
+**Batch bookmark writes** — During recording, bookmark taps queue in memory and flush to SQLite in a single transaction every 2 seconds. This prevents DB writes from interfering with the camera encoder or causing dropped frames.
+
+**WAL mode** — SQLite is opened in Write-Ahead Logging mode so reads and writes don't block each other. Bookmarks flush without locking the database during active recording.
+
+**Offline-first** — Everything lives in `expo-sqlite` and `expo-file-system`. No network calls anywhere in the codebase. Works in a stadium with no signal.
+
+**Storage awareness** — The app checks free disk space on launch and warns when below 500MB (yellow) or 100MB (red). Full recordings can be bulk-deleted from Settings while keeping all clips safe.
+
+**Error boundaries** — Camera and Review screens are wrapped in an `ErrorBoundary`. If either crashes, the user sees a friendly message with a retry button instead of a blank screen.
+
+---
+
+## Colour Palette
+
+```
+Background:    #0D0D0D   (near-black, easy on eyes outdoors)
+Surface:       #1A1A1E
+Primary:       #00FF88   (goal green — high contrast in sunlight)
+Text:          #FFFFFF
+Text Dim:      #666670
+Goal:          #00FF88
+Foul:          #FF6600   (orange)
+Offside:       #FFD700   (gold)
+Yellow Card:   #FFD700
+Red Card:      #FF3355
+Recording:     #FF3355   (REC dot and timer)
+```
+
+---
 
 ## Development Checkpoints
 
-| # | Checkpoint | What was built | Status |
-|---|-----------|---------------|--------|
-| 1 | Project skeleton | Expo project, theme system, navigation, custom SVG logo, 4 screen shells | ✅ |
-| 2 | Camera + recording | expo-camera recording, elapsed timer, bookmark timestamps, haptic + flash feedback, video saved to filesystem | ✅ |
-| 3 | Review screen | expo-video playback, last 60s window, draggable timeline, frame-by-frame stepping (33ms), bookmark markers on timeline | ✅ |
-| 4 | SQLite database | 3 tables (matches, bookmarks, clips), full CRUD, batch bookmark writer (flushes every 2s), auto-init on app start | ✅ |
-| 5 | Clips library | 2-column grid, fullscreen video player modal, share (expo-sharing), delete with file cleanup, pull-to-refresh | ✅ |
-| 6 | Polish | Flash toggle, zoom slider, ErrorBoundary component, StorageManager (free space alerts, usage tracking, bulk cleanup), real storage data in settings | ✅ |
+| # | Checkpoint | Status |
+|---|-----------|--------|
+| 1 | Project skeleton — Expo setup, theme, navigation, SVG logo, 4 screen shells | ✅ |
+| 2 | Camera + recording — expo-camera, elapsed timer, bookmark timestamps, haptic + flash feedback | ✅ |
+| 3 | Review screen — video playback, 60s window, draggable timeline, frame-by-frame stepping | ✅ |
+| 4 | SQLite database — 3 tables, full CRUD, batch bookmark writer, auto-init on launch | ✅ |
+| 5 | Clips library — 2-column grid, fullscreen modal, share, delete with file cleanup | ✅ |
+| 6 | Polish — flash toggle, zoom control, ErrorBoundary, StorageManager, real storage data in settings | ✅ |
 
-## Key Features
-
-- **Batch bookmark writes** — During recording, bookmarks queue in memory and flush to SQLite every 2 seconds. Zero impact on recording performance.
-- **Storage management** — Automatic low-space warnings (<500MB) and critical alerts (<100MB). One-tap "Delete All Recordings" to free space while keeping clips.
-- **Error boundaries** — If Camera or Review crashes, the app shows a friendly error with a retry button instead of going blank.
-- **Dark theme** — #0D0D0D background with #00FF88 green accents, designed for outdoor readability.
-- **Offline-first** — Everything runs locally. No internet connection required. No data leaves the device.
+---
 
 ## Future Roadmap
 
 - **AI Referee Analysis** — on-device foul/offside detection (TensorFlow Lite)
-- **LAN Multi-Phone** — WebSocket sync across multiple phones for multi-angle VAR
-- **Cloud Sync** — match/clip upload to personal storage
-- **Payment / Premium** — subscription for AI features and extended cloud storage (RevenueCat + Stripe)
-- **Match Timeline Export** — auto-compiled highlight reel with all bookmarks
-- **Web Dashboard** — desktop review with tactical drawing tools
+- **LAN Multi-Phone** — WebSocket sync across multiple devices for multi-angle VAR
+- **Cloud Sync** — optional match/clip upload to personal storage
+- **Match Timeline Export** — auto-compiled highlight reel from all bookmarks
+- **Web Dashboard** — desktop review with tactical drawing overlay tools
+- **Premium Tier** — subscription for AI features and extended cloud (RevenueCat + Stripe)
+
+---
 
 ## Getting Started
 
@@ -100,28 +157,16 @@ npm install
 npx expo start
 ```
 
-Then scan the QR code with **Expo Go** on your Android phone.
+Scan the QR code with **Expo Go** on your Android device.
 
-For Android emulator: install an x86_64 system image via SDK Manager, then:
+For an emulator, install an x86_64 system image via Android Studio SDK Manager, then:
+
 ```bash
 ~/Android/Sdk/emulator/emulator -avd PocketVAR_Test
-npx expo start
-```
-
-## Color Palette
-
-```
-Background:    #0D0D0D
-Surface:       #1A1A1E
-Primary Green: #00FF88
-Text:          #FFFFFF
-Text Dim:      #666670
-Danger:        #FF3355  (red card)
-Warning:       #FFD700  (yellow card, offside)
-Foul:          #FF6600  (orange)
+npx expo start --android
 ```
 
 ---
 
 > **Pocket VAR** — your pocket-sized video assistant referee. ⚽  
-> Developed by **Nanbol Dassak** ([@bolitupac](https://github.com/Bolitupac))
+> Built by **Nanbol Dassak** ([@bolitupac](https://github.com/Bolitupac))

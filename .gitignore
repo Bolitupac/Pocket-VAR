@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# internal dev notes (bugs, flaws, performance — not for public repo)
+INTERNAL_NOTES.md
