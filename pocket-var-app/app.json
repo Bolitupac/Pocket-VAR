@@ -1,23 +1,40 @@
 {
   "expo": {
-    "name": "pocket-var-app",
-    "slug": "pocket-var-app",
+    "name": "Pocket VAR",
+    "slug": "pocket-var",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "pocketvarapp",
-    "userInterfaceStyle": "automatic",
+    "scheme": "pocketvar",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0D0D0D",
+    "splash": {
+      "backgroundColor": "#0D0D0D",
+      "resizeMode": "contain"
+    },
     "ios": {
-      "icon": "./assets/expo.icon"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pocketvar.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Pocket VAR needs camera access to record football matches.",
+        "NSMicrophoneUsageDescription": "Pocket VAR needs microphone access to record match audio.",
+        "NSPhotoLibraryAddUsageDescription": "Pocket VAR needs photo library access to save recorded clips."
+      }
     },
     "android": {
+      "package": "com.pocketvar.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0D0D0D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "output": "static",
@@ -28,13 +45,23 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0D0D0D",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Pocket VAR needs camera access to record football matches."
+        }
+      ],
+      "expo-video",
+      "expo-sqlite",
+      "expo-sharing",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,

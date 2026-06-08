@@ -69,27 +69,28 @@ Video quality, max review window. A real-time storage bar showing how much of yo
 ## Architecture
 
 ```
-pocket-var/
-├── App.js                          # Root — DB init → splash → navigator
-├── app.json                        # Expo config (permissions, splash, theme)
-├── assets/                         # Icons, logo SVG
+pocket-var-app/
+├── app.json                        # Expo config (permissions, plugins, dark theme)
+├── tsconfig.json                   # Strict TS with @/* path alias
+├── assets/
+│   └── images/                     # Icons, splash, logo-var.png
 └── src/
+    ├── app/                        # Expo Router (file-based routing)
+    │   ├── _layout.tsx             # Root Stack navigator
+    │   ├── index.tsx               # → /       Camera screen
+    │   ├── review.tsx              # → /review  Review screen
+    │   ├── clips.tsx               # → /clips   Clips screen
+    │   └── settings.tsx            # → /settings Settings screen
     ├── components/
-    │   └── ErrorBoundary.js        # Catches crashes, shows retry screen
-    ├── navigation/
-    │   └── AppNavigator.js         # Stack: Camera → Review → Clips → Settings
-    ├── screens/
-    │   ├── CameraScreen.js         # Live preview, recording, bookmarks, flash, zoom
-    │   ├── ReviewScreen.js         # Last 60s player, timeline scrub, frame step
-    │   ├── ClipsScreen.js          # Saved clips grid, play modal, share, delete
-    │   └── SettingsScreen.js       # Quality, storage, about, delete recordings
-    ├── store/
-    │   └── useAppStore.js          # Zustand store + SQLite sync
+    │   ├── LogoText.tsx            # Text-based logo (no PNG needed)
+    │   └── ErrorBoundary.tsx       # Crash recovery with retry (WIP)
     ├── theme/
-    │   └── index.js                # Colors, spacing, typography, border radius
+    │   └── index.ts                # Colors, spacing, typography, shadows
+    ├── store/
+    │   └── useAppStore.ts          # Zustand store + SQLite sync (WIP)
     └── utils/
-        ├── database.js             # SQLite CRUD + batch bookmark writer
-        └── storage.js              # Free space monitor, usage tracker, cleanup
+        ├── database.ts             # SQLite CRUD + batch bookmark writer (WIP)
+        └── storage.ts              # Free space monitor, usage tracker (WIP)
 ```
 
 ---
@@ -112,13 +113,13 @@ pocket-var/
 
 ```
 Background:    #0D0D0D   (near-black, easy on eyes outdoors)
-Surface:       #1A1A1E
-Primary:       #00FF88   (goal green — high contrast in sunlight)
+Surface:       #1A1A1E   (glassmorphism frosted panels)
+Primary:       #FF6600   (tiger orange — CTAs, key metrics, accent)
 Text:          #FFFFFF
 Text Dim:      #666670
-Goal:          #00FF88
-Foul:          #FF6600   (orange)
-Offside:       #FFD700   (gold)
+Goal:          #00FF88   (green — universal goal signal)
+Foul:          #FF6600   (orange — also primary accent)
+Offside:       #FFD700   (gold — AR flag colour)
 Yellow Card:   #FFD700
 Red Card:      #FF3355
 Recording:     #FF3355   (REC dot and timer)
@@ -130,12 +131,21 @@ Recording:     #FF3355   (REC dot and timer)
 
 | # | Checkpoint | Status |
 |---|-----------|--------|
-| 1 | Project skeleton — Expo setup, theme, navigation, SVG logo, 4 screen shells | ✅ |
-| 2 | Camera + recording — expo-camera, elapsed timer, bookmark timestamps, haptic + flash feedback | ✅ |
-| 3 | Review screen — video playback, 60s window, draggable timeline, frame-by-frame stepping | ✅ |
-| 4 | SQLite database — 3 tables, full CRUD, batch bookmark writer, auto-init on launch | ✅ |
-| 5 | Clips library — 2-column grid, fullscreen modal, share, delete with file cleanup | ✅ |
-| 6 | Polish — flash toggle, zoom control, ErrorBoundary, StorageManager, real storage data in settings | ✅ |
+| 1 | Dependencies + app.json — expo-camera, expo-video, expo-sqlite, Zustand, permissions | ✅ |
+| 2 | Theme system + navigation shell — colors (#FF6600 primary), typography, LogoText, 4 route stubs | ✅ |
+| 3 | SQLite database — 3 tables, full CRUD, batch bookmark writer, auto-init on launch | ⬜ |
+| 4 | Camera screen — live preview, recording, bookmark buttons, flash, zoom, timer | ⬜ |
+| 5 | Review screen — 60s video playback, waveform timeline, frame stepping, SAVE CLIP | ⬜ |
+| 6 | Clips screen — 2-column grid, fullscreen modal, share, delete with file cleanup | ⬜ |
+| 7 | Settings screen — quality picker, storage bar, delete recordings, about | ⬜ |
+| 8 | Polish — ErrorBoundary, storage warnings, haptic feedback, AppState handling | ⬜ |
+
+### Build Log
+
+| Step | Date | What |
+|------|------|------|
+| 1 | 2026-06-08 | Installed 8 packages (expo-camera, expo-video, expo-sqlite, expo-file-system, expo-sharing, expo-video-thumbnails, react-native-svg, zustand). Configured app.json with dark theme, permissions, plugins. |
+| 2 | 2026-06-08 | Created theme system (colors, spacing, typography, shadows). LogoText component (text-based, no PNG needed). Navigation shell with 4 screen stubs (Camera, Review, Clips, Settings). Zero type errors. |
 
 ---
 
