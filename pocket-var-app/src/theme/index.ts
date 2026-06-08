@@ -1,7 +1,7 @@
 /**
  * Pocket VAR — Design Token System
  *
- * Dark-mode-first palette with tiger orange (#FF6600) as the primary accent.
+ * Dark-mode-first palette with football pitch green (#22C55E) as the primary accent.
  * All tokens are exported as plain objects so they tree-shake cleanly.
  */
 
@@ -9,25 +9,25 @@
 
 export const colors = {
   // Foundation
-  background: '#0D0D0D',       // near-black — minimises glare outdoors
-  surface: '#1A1A1E',           // card surfaces, subtle blue-black tint
-  surfaceLight: '#252529',      // elevated surfaces, glass panels
-  surfaceGlass: 'rgba(26, 26, 30, 0.72)', // glassmorphism frosted overlay
+  background: '#080B08',        // deep football-black with a green undertone
+  surface: '#0F1A0F',           // dark green-black card surface
+  surfaceLight: '#182318',      // elevated surface with subtle green tint
+  surfaceGlass: 'rgba(10, 20, 10, 0.75)', // glassmorphism frosted overlay
 
-  // Brand accent — tiger orange
-  primary: '#FF6600',           // CTAs, key metrics, active states
-  primaryDark: '#CC5200',       // pressed / hover state
-  primaryDim: 'rgba(255, 102, 0, 0.15)', // glow, selection highlight
-  primaryGlass: 'rgba(255, 102, 0, 0.12)', // subtle orange glass overlay
+  // Brand accent — football pitch green
+  primary: '#22C55E',           // CTAs, active states, key UI elements
+  primaryDark: '#16A34A',       // pressed / hover state
+  primaryDim: 'rgba(34, 197, 94, 0.15)',  // glow, selection highlight
+  primaryGlass: 'rgba(34, 197, 94, 0.10)', // subtle green glass overlay
 
   // Text hierarchy
   text: '#FFFFFF',
-  textSecondary: '#A0A0A8',
-  textDim: '#666670',
+  textSecondary: '#9CA38F',
+  textDim: '#4A5245',
 
   // Semantic event colours (matched to real-world VAR / referee signals)
-  goal: '#00FF88',              // green — universal "goal" signal
-  foul: '#FF6600',              // orange — also the primary brand accent
+  goal: '#22C55E',              // green — universal "goal" signal
+  foul: '#F97316',              // orange — foul signal
   offside: '#FFD700',           // gold — AR flag colour
   yellowCard: '#FFD700',
   redCard: '#FF3355',
@@ -36,8 +36,8 @@ export const colors = {
   recording: '#FF3355',         // red REC dot + timer pill
 
   // Utility
-  border: 'rgba(255, 255, 255, 0.08)',
-  divider: 'rgba(255, 255, 255, 0.06)',
+  border: 'rgba(34, 197, 94, 0.12)',
+  divider: 'rgba(34, 197, 94, 0.06)',
 };
 
 // ── Semantic colour lookup by event type ───────────────────────

@@ -4,7 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { colors } from '../theme';
 
 /**
- * Root layout — wraps every screen in a dark-themed Stack navigator.
+ * Root layout — wraps every screen in a dark Stack navigator.
+ * Each screen renders its own FloatingTabBar so it floats over content.
  *
  * Screen map (file-based routing):
  *   /          → CameraScreen
@@ -16,9 +17,9 @@ import { colors } from '../theme';
 export default function RootLayout() {
   const screenOptions = useCallback(
     () => ({
-      headerShown: false,   // every screen manages its own chrome
+      headerShown: false,
       contentStyle: { backgroundColor: colors.background },
-      animation: 'slide_from_right' as const,
+      animation: 'fade' as const,
     }),
     [],
   );
