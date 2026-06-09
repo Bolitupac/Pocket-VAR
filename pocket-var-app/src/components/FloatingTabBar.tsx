@@ -8,31 +8,19 @@ import {
   Image,
 } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import { colors, radius, typography } from '../theme';
-
-/**
- * FloatingTabBar
- *
- * A glassmorphic floating navigation bar that sits at the bottom of every
- * screen, floating above the content. Contains:
- *  - Logo mark on the left (POCKET VAR wordmark)
- *  - Four icon+label tabs: Camera · Review · Clips · Settings
- *
- * Usage: render inside any screen's root <View> with position: relative.
- * The bar uses position: absolute so it always floats at the bottom.
- */
+import { colors, radius } from '../theme';
 
 type Tab = {
   route: string;
-  icon: string;
   label: string;
+  symbol: string;
 };
 
 const TABS: Tab[] = [
-  { route: '/',         icon: '⬤',  label: 'CAM'      },
-  { route: '/review',   icon: '▶',  label: 'REVIEW'   },
-  { route: '/clips',    icon: '🎬', label: 'CLIPS'    },
-  { route: '/settings', icon: '⚙', label: 'SETTINGS' },
+  { route: '/',         label: 'CAM',    symbol: '◉' },
+  { route: '/review',   label: 'REVIEW', symbol: '▶' },
+  { route: '/clips',    label: 'CLIPS',  symbol: '⊞' },
+  { route: '/settings', label: 'CONFIG', symbol: '⊛' },
 ];
 
 export function FloatingTabBar() {
@@ -42,19 +30,22 @@ export function FloatingTabBar() {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <View style={styles.container}>
-        {/* ── Logo mark ─────────────────────────── */}
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoPocket}>POCKET</Text>
-          <Text style={styles.logoVar}>VAR</Text>
+
+        {/* Brand seal — white chip with real logo image */}
+        <View style={styles.logoChip}>
+          <Image
+            source={require('../../assets/images/pocket-var-logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
 
-        {/* ── Divider ──────────────────────────── */}
         <View style={styles.divider} />
 
-        {/* ── Tabs ─────────────────────────────── */}
         <View style={styles.tabs}>
           {TABS.map((tab) => {
-            const active = pathname === tab.route ||
+            const active =
+              pathname === tab.route ||
               (tab.route === '/' && pathname === '/index');
 
             return (
@@ -64,12 +55,11 @@ export function FloatingTabBar() {
                 onPress={() => router.push(tab.route as any)}
                 activeOpacity={0.7}
               >
-                {/* Camera tab shows a live-record dot */}
                 {tab.route === '/' ? (
-                  <View style={[styles.camDot, active && styles.camDotActive]} />
+                  <View style={[styles.recIndicator, active && styles.recIndicatorActive]} />
                 ) : (
-                  <Text style={[styles.tabIcon, active && styles.tabIconActive]}>
-                    {tab.icon}
+                  <Text style={[styles.tabSymbol, active && styles.tabSymbolActive]}>
+                    {tab.symbol}
                   </Text>
                 )}
                 <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
@@ -84,79 +74,60 @@ export function FloatingTabBar() {
   );
 }
 
-// ── Styles ───────────────────────────────────────────────────────
-
-const BAR_HEIGHT   = 68;
-const BOTTOM_GAP   = 20;
-const SIDE_MARGIN  = 16;
-
 const styles = StyleSheet.create({
-  // Outer wrapper — fills the screen, lets touches pass through empty space
   wrapper: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: BOTTOM_GAP,
-    paddingHorizontal: SIDE_MARGIN,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
   },
 
-  // Glassmorphic pill container
   container: {
-    height: BAR_HEIGHT,
+    height: 68,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(8, 18, 8, 0.82)',
+    backgroundColor: 'rgba(4, 10, 4, 0.94)',
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.20)',
-    paddingHorizontal: 14,
+    borderColor: 'rgba(34, 197, 94, 0.25)',
+    paddingHorizontal: 10,
     paddingVertical: 8,
-    // iOS blur simulation via shadow + tinted bg
     ...(Platform.OS === 'ios'
       ? {
-          shadowColor: '#22C55E',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.25,
-          shadowRadius: 24,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.22,
+          shadowRadius: 20,
         }
-      : { elevation: 20 }),
+      : { elevation: 24 }),
   },
 
-  // ── Logo ──
-  logoWrap: {
-    alignItems: 'flex-start',
-    marginRight: 10,
-    paddingLeft: 4,
+  logoChip: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    width: 60,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  logoPocket: {
-    fontSize: 8,
-    fontWeight: '700' as const,
-    letterSpacing: 2,
-    color: colors.textSecondary,
-    lineHeight: 10,
-  },
-  logoVar: {
-    fontSize: 18,
-    fontWeight: '900' as const,
-    letterSpacing: 1,
-    color: colors.primary,
-    lineHeight: 20,
+  logoImage: {
+    width: 56,
+    height: 40,
   },
 
-  // ── Vertical divider ──
   divider: {
     width: 1,
-    height: 32,
-    backgroundColor: 'rgba(34, 197, 94, 0.18)',
-    marginRight: 6,
+    height: 30,
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    marginHorizontal: 8,
   },
 
-  // ── Tab row ──
   tabs: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
   },
 
@@ -164,44 +135,41 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 2,
     borderRadius: radius.md,
+    gap: 2,
   },
-
   tabActive: {
-    backgroundColor: colors.primaryGlass,
+    backgroundColor: 'rgba(34, 197, 94, 0.10)',
   },
 
-  // ── Camera record dot ──
-  camDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  recIndicator: {
+    width: 9,
+    height: 9,
+    borderRadius: 99,
     backgroundColor: colors.textDim,
-    marginBottom: 3,
   },
-  camDotActive: {
+  recIndicatorActive: {
     backgroundColor: colors.recording,
     shadowColor: colors.recording,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
+    shadowOpacity: 1,
+    shadowRadius: 5,
   },
 
-  // ── Tab icon / label ──
-  tabIcon: {
-    fontSize: 13,
+  tabSymbol: {
+    fontSize: 12,
     color: colors.textDim,
-    marginBottom: 2,
   },
-  tabIconActive: {
+  tabSymbolActive: {
     color: colors.primary,
   },
 
   tabLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: '700' as const,
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
     color: colors.textDim,
   },
   tabLabelActive: {
