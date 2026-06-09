@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, radius } from '../theme';
 import { FloatingTabBar } from '../components/FloatingTabBar';
 
@@ -9,11 +10,21 @@ const MOCK_BOOKMARKS = [
   { type: 'offside', position: 0.72, color: colors.offside },
 ];
 
+type ActiveTool = 'none' | 'slowmo' | 'draw' | 'zoom' | 'loop';
+
 export default function ReviewScreen() {
+  const [activeTool, setActiveTool] = useState<ActiveTool>('none');
+  const [speed, setSpeed] = useState<number>(1);
+
   const waveBars = useMemo(
     () => Array.from({ length: 60 }, () => 8 + Math.random() * 28),
     [],
   );
+
+  const toggleTool = (tool: ActiveTool) => {
+    setActiveTool((prev) => (prev === tool ? 'none' : tool));
+    if (tool === 'slowmo' && activeTool !== 'slowmo') setSpeed(0.5);
+  };
 
   return (
     <View style={styles.root}>
@@ -48,30 +59,16 @@ export default function ReviewScreen() {
         {/* ── Video area ──────────────────────────── */}
         <View style={styles.videoWrap}>
           <View style={styles.videoArea}>
-            {/* Corner brackets */}
-            <View style={[styles.corner, styles.cTL]} />
-            <View style={[styles.corner, styles.cTR]} />
-            <View style={[styles.corner, styles.cBL]} />
-            <View style={[styles.corner, styles.cBR]} />
-
-            {/* Scan line overlay */}
-            <View style={styles.scanLine} />
-
             {/* Center play */}
             <View style={styles.playOverlay}>
               <View style={styles.playCircle}>
-                <Text style={styles.playIcon}>▶</Text>
+                <MaterialCommunityIcons name="play" size={24} color={colors.textSecondary} style={{ marginLeft: 3 }} />
               </View>
             </View>
 
             {/* Timestamp badge */}
             <View style={styles.timestampBadge}>
               <Text style={styles.timestampText}>-00:38</Text>
-            </View>
-
-            {/* VAR watermark */}
-            <View style={styles.varWatermark}>
-              <Text style={styles.varWatermarkText}>VAR</Text>
             </View>
           </View>
         </View>
@@ -104,8 +101,8 @@ export default function ReviewScreen() {
                       {
                         height: h,
                         backgroundColor: isPlayed
-                          ? `rgba(34, 197, 94, 0.65)`
-                          : `rgba(34, 197, 94, 0.18)`,
+                          ? colors.textSecondary
+                          : 'rgba(255,255,255,0.08)',
                       },
                     ]}
                   />
@@ -140,39 +137,201 @@ export default function ReviewScreen() {
         {/* ── Frame controls ──────────────────────── */}
         <View style={styles.frameControls}>
           <TouchableOpacity style={styles.frameBtn} activeOpacity={0.7}>
-            <Text style={styles.frameBtnIcon}>⏮</Text>
+            <MaterialCommunityIcons name="skip-backward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.frameBtn} activeOpacity={0.7}>
-            <Text style={styles.frameBtnIcon}>⏪</Text>
+            <MaterialCommunityIcons name="step-backward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.playBtn} activeOpacity={0.7}>
-            <Text style={styles.playBtnIcon}>▶</Text>
+            <MaterialCommunityIcons name="play" size={24} color={colors.text} style={{ marginLeft: 2 }} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.frameBtn} activeOpacity={0.7}>
-            <Text style={styles.frameBtnIcon}>⏩</Text>
+            <MaterialCommunityIcons name="step-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.frameBtn} activeOpacity={0.7}>
-            <Text style={styles.frameBtnIcon}>⏭</Text>
+            <MaterialCommunityIcons name="skip-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
         <View style={styles.frameHint}>
           <Text style={styles.frameHintText}>1 FRAME = 33ms  ·  30fps</Text>
         </View>
 
+        {/* ── VAR Tools ───────────────────────────── */}
+        <View style={styles.toolsSection}>
+          <View style={styles.toolsHeader}>
+            <View style={styles.toolsHeaderLeft}>
+              <View style={styles.toolsDot} />
+              <Text style={styles.toolsTitle}>VAR TOOLS</Text>
+            </View>
+          </View>
+
+          <View style={styles.toolsRow}>
+            {/* Slow Motion */}
+            <TouchableOpacity
+              style={[styles.toolBtn, activeTool === 'slowmo' && styles.toolBtnActive]}
+              onPress={() => toggleTool('slowmo')}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name="speedometer-slow"
+                size={20}
+                color={activeTool === 'slowmo' ? colors.text : colors.textSecondary}
+              />
+              <Text style={[styles.toolLabel, activeTool === 'slowmo' && styles.toolLabelActive]}>
+                SLOW
+              </Text>
+            </TouchableOpacity>
+
+            {/* Draw Line */}
+            <TouchableOpacity
+              style={[styles.toolBtn, activeTool === 'draw' && styles.toolBtnActive]}
+              onPress={() => toggleTool('draw')}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name="ruler"
+                size={20}
+                color={activeTool === 'draw' ? colors.text : colors.textSecondary}
+              />
+              <Text style={[styles.toolLabel, activeTool === 'draw' && styles.toolLabelActive]}>
+                DRAW
+              </Text>
+            </TouchableOpacity>
+
+            {/* Zoom */}
+            <TouchableOpacity
+              style={[styles.toolBtn, activeTool === 'zoom' && styles.toolBtnActive]}
+              onPress={() => toggleTool('zoom')}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name="magnify-plus"
+                size={20}
+                color={activeTool === 'zoom' ? colors.text : colors.textSecondary}
+              />
+              <Text style={[styles.toolLabel, activeTool === 'zoom' && styles.toolLabelActive]}>
+                ZOOM
+              </Text>
+            </TouchableOpacity>
+
+            {/* Loop */}
+            <TouchableOpacity
+              style={[styles.toolBtn, activeTool === 'loop' && styles.toolBtnActive]}
+              onPress={() => toggleTool('loop')}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name="repeat"
+                size={20}
+                color={activeTool === 'loop' ? colors.text : colors.textSecondary}
+              />
+              <Text style={[styles.toolLabel, activeTool === 'loop' && styles.toolLabelActive]}>
+                LOOP
+              </Text>
+            </TouchableOpacity>
+
+            {/* Freeze Frame */}
+            <TouchableOpacity style={styles.toolBtn} activeOpacity={0.7}>
+              <MaterialCommunityIcons name="pause-circle" size={20} color={colors.textSecondary} />
+              <Text style={styles.toolLabel}>FREEZE</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Speed selector — shown when SLOW-MO is active */}
+          {activeTool === 'slowmo' && (
+            <View style={styles.subToolPanel}>
+              <Text style={styles.subToolTitle}>PLAYBACK SPEED</Text>
+              <View style={styles.speedRow}>
+                {[0.25, 0.5, 1, 2].map((s) => (
+                  <TouchableOpacity
+                    key={s}
+                    style={[styles.speedChip, speed === s && styles.speedChipActive]}
+                    onPress={() => setSpeed(s)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.speedText, speed === s && styles.speedTextActive]}>
+                      {s}x
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Draw controls — shown when DRAW is active */}
+          {activeTool === 'draw' && (
+            <View style={styles.subToolPanel}>
+              <Text style={styles.subToolTitle}>DRAW TOOL</Text>
+              <View style={styles.drawRow}>
+                <TouchableOpacity style={styles.drawActionBtn} activeOpacity={0.7}>
+                  <MaterialCommunityIcons name="undo" size={16} color={colors.textSecondary} />
+                  <Text style={styles.drawActionText}>Undo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.drawActionBtn} activeOpacity={0.7}>
+                  <MaterialCommunityIcons name="delete" size={16} color={colors.textSecondary} />
+                  <Text style={styles.drawActionText}>Clear</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.drawActionBtn} activeOpacity={0.7}>
+                  <MaterialCommunityIcons name="palette" size={16} color={colors.offside} />
+                  <Text style={[styles.drawActionText, { color: colors.offside }]}>Yellow Line</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Zoom controls — shown when ZOOM is active */}
+          {activeTool === 'zoom' && (
+            <View style={styles.subToolPanel}>
+              <Text style={styles.subToolTitle}>ZOOM LEVEL</Text>
+              <View style={styles.speedRow}>
+                {[1.5, 2, 3, 4].map((z) => (
+                  <TouchableOpacity
+                    key={z}
+                    style={[styles.speedChip, speed === z && styles.speedChipActive]}
+                    onPress={() => setSpeed(z)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.speedText, speed === z && styles.speedTextActive]}>
+                      {z}x
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Loop controls — shown when LOOP is active */}
+          {activeTool === 'loop' && (
+            <View style={styles.subToolPanel}>
+              <Text style={styles.subToolTitle}>LOOP SEGMENT</Text>
+              <View style={styles.loopRow}>
+                <TouchableOpacity style={styles.loopActionBtn} activeOpacity={0.7}>
+                  <MaterialCommunityIcons name="flag" size={14} color={colors.offside} />
+                  <Text style={styles.loopActionText}>Set In Point</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.loopActionBtn} activeOpacity={0.7}>
+                  <MaterialCommunityIcons name="flag-checkered" size={14} color={colors.goal} />
+                  <Text style={styles.loopActionText}>Set Out Point</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+
         {/* ── Decision buttons ────────────────────── */}
         <View style={styles.decisions}>
           <TouchableOpacity style={[styles.decisionBtn, styles.decisionNeutral]} activeOpacity={0.7}>
-            <Text style={styles.decisionIcon}>✕</Text>
+            <MaterialCommunityIcons name="close" size={18} color={colors.textSecondary} />
             <Text style={styles.decisionLabel}>NO FOUL</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.decisionBtn, styles.decisionFoul]} activeOpacity={0.7}>
-            <Text style={styles.decisionIcon}>⚠</Text>
+            <MaterialCommunityIcons name="alert-circle" size={18} color={colors.foul} />
             <Text style={[styles.decisionLabel, { color: colors.foul }]}>MARK FOUL</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.saveClipBtn} activeOpacity={0.7}>
-          <Text style={styles.saveClipIcon}>💾</Text>
+          <MaterialCommunityIcons name="content-save" size={18} color={colors.text} />
           <Text style={styles.saveClipLabel}>SAVE CLIP</Text>
         </TouchableOpacity>
 
@@ -182,9 +341,6 @@ export default function ReviewScreen() {
     </View>
   );
 }
-
-const C = 20;
-const B = 2.5;
 
 const styles = StyleSheet.create({
   root: {
@@ -200,9 +356,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxxl + spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
-    backgroundColor: 'rgba(3, 8, 3, 0.88)',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(34, 197, 94, 0.10)',
+    borderBottomColor: colors.divider,
   },
   logoChip: {
     backgroundColor: '#FFFFFF',
@@ -236,12 +392,12 @@ const styles = StyleSheet.create({
   hudBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.10)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.22)',
+    borderColor: colors.border,
     gap: 5,
   },
   hudBadgeDot: {
@@ -271,55 +427,32 @@ const styles = StyleSheet.create({
   videoArea: {
     aspectRatio: 16 / 9,
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.12)',
+    borderColor: colors.border,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  corner: {
-    position: 'absolute',
-    width: C,
-    height: C,
-    borderColor: colors.primary,
-  },
-  cTL: { top: 10, left: 10,   borderTopWidth: B, borderLeftWidth: B,   borderTopLeftRadius: 5 },
-  cTR: { top: 10, right: 10,  borderTopWidth: B, borderRightWidth: B,  borderTopRightRadius: 5 },
-  cBL: { bottom: 10, left: 10,  borderBottomWidth: B, borderLeftWidth: B,   borderBottomLeftRadius: 5 },
-  cBR: { bottom: 10, right: 10, borderBottomWidth: B, borderRightWidth: B,  borderBottomRightRadius: 5 },
-  scanLine: {
-    position: 'absolute',
-    top: '30%',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
   },
   playOverlay: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   playCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(34, 197, 94, 0.14)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(34, 197, 94, 0.40)',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  playIcon: {
-    fontSize: 20,
-    color: colors.primary,
-    marginLeft: 3,
   },
   timestampBadge: {
     position: 'absolute',
     bottom: 10,
     left: 14,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.60)',
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -331,32 +464,15 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },
-  varWatermark: {
-    position: 'absolute',
-    bottom: 10,
-    right: 14,
-    backgroundColor: 'rgba(34,197,94,0.08)',
-    borderRadius: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(34,197,94,0.15)',
-  },
-  varWatermarkText: {
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 2,
-    color: 'rgba(34,197,94,0.50)',
-  },
 
   // ── Timeline
   timelineSection: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.10)',
+    borderColor: colors.border,
     padding: spacing.md,
   },
   timelineHeader: {
@@ -369,7 +485,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 2,
-    color: colors.primary,
+    color: colors.textSecondary,
   },
   timelineLegend: {
     flexDirection: 'row',
@@ -423,7 +539,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
     borderRadius: 1,
   },
   timeLabels: {
@@ -453,28 +569,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.12)',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  frameBtnIcon: {
-    fontSize: 16,
-    color: colors.textSecondary,
   },
   playBtn: {
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: 'rgba(34, 197, 94, 0.12)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(34, 197, 94, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  playBtnIcon: {
-    fontSize: 20,
-    color: colors.primary,
-    marginLeft: 2,
   },
   frameHint: {
     alignItems: 'center',
@@ -485,6 +592,153 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 1.5,
     color: colors.textDim,
+  },
+
+  // ── VAR Tools
+  toolsSection: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  toolsHeader: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  toolsHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  toolsDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.textSecondary,
+  },
+  toolsTitle: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 2.5,
+    color: colors.textSecondary,
+  },
+  toolsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.sm,
+    paddingBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  toolBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    gap: 4,
+  },
+  toolBtnActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.10)',
+  },
+  toolLabel: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: colors.textDim,
+  },
+  toolLabelActive: {
+    color: colors.text,
+  },
+
+  // ── Sub-tool panels
+  subToolPanel: {
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  subToolTitle: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 2,
+    color: colors.textDim,
+  },
+  speedRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  speedChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  speedChipActive: {
+    borderColor: 'rgba(255, 255, 255, 0.30)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  speedText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textDim,
+    fontVariant: ['tabular-nums'],
+  },
+  speedTextActive: {
+    color: colors.text,
+  },
+
+  // Draw controls
+  drawRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  drawActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    gap: 5,
+  },
+  drawActionText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+
+  // Loop controls
+  loopRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  loopActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    gap: 5,
+  },
+  loopActionText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 
   // ── Decision buttons
@@ -505,16 +759,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   decisionNeutral: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: colors.border,
   },
   decisionFoul: {
-    backgroundColor: 'rgba(249, 115, 22, 0.10)',
-    borderColor: 'rgba(249, 115, 22, 0.28)',
-  },
-  decisionIcon: {
-    fontSize: 16,
-    color: colors.textSecondary,
+    backgroundColor: 'rgba(249, 115, 22, 0.08)',
+    borderColor: 'rgba(249, 115, 22, 0.22)',
   },
   decisionLabel: {
     fontSize: 11,
@@ -531,18 +781,15 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingVertical: 14,
     borderRadius: radius.md,
-    backgroundColor: 'rgba(34, 197, 94, 0.10)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.28)',
+    borderColor: colors.border,
     gap: 8,
-  },
-  saveClipIcon: {
-    fontSize: 16,
   },
   saveClipLabel: {
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1.5,
-    color: colors.primary,
+    color: colors.text,
   },
 });

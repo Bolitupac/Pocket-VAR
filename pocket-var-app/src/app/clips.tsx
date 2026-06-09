@@ -1,4 +1,5 @@
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, radius } from '../theme';
 import { FloatingTabBar } from '../components/FloatingTabBar';
 
@@ -54,7 +55,7 @@ export default function ClipsScreen() {
         contentContainerStyle={styles.filterContent}
       >
         {[
-          { label: 'ALL',     color: colors.primary },
+          { label: 'ALL',     color: colors.text },
           { label: 'GOAL',    color: colors.goal },
           { label: 'FOUL',    color: colors.foul },
           { label: 'OFFSIDE', color: colors.offside },
@@ -65,12 +66,14 @@ export default function ClipsScreen() {
             key={f.label}
             style={[
               styles.filterChip,
-              i === 0 && { backgroundColor: 'rgba(34, 197, 94, 0.12)', borderColor: colors.primary },
+              i === 0 && styles.filterChipActive,
             ]}
             activeOpacity={0.7}
           >
-            <View style={[styles.filterDot, { backgroundColor: f.color }]} />
-            <Text style={[styles.filterLabel, i === 0 && { color: colors.primary }]}>
+            {f.label !== 'ALL' && (
+              <View style={[styles.filterDot, { backgroundColor: f.color }]} />
+            )}
+            <Text style={[styles.filterLabel, i === 0 && styles.filterLabelActive]}>
               {f.label}
             </Text>
           </TouchableOpacity>
@@ -88,27 +91,15 @@ export default function ClipsScreen() {
 
             {/* Thumbnail */}
             <View style={styles.thumb}>
-              {/* Color accent top bar */}
-              <View style={[styles.accentBar, { backgroundColor: clip.color }]} />
-
-              {/* Corner brackets */}
-              <View style={[styles.corner, styles.cTL, { borderColor: clip.color }]} />
-              <View style={[styles.corner, styles.cTR, { borderColor: clip.color }]} />
-              <View style={[styles.corner, styles.cBL, { borderColor: clip.color }]} />
-              <View style={[styles.corner, styles.cBR, { borderColor: clip.color }]} />
-
-              {/* Play button */}
               <View style={styles.playCircle}>
-                <Text style={styles.playIcon}>▶</Text>
+                <MaterialCommunityIcons name="play" size={16} color="rgba(255,255,255,0.60)" style={{ marginLeft: 1 }} />
               </View>
 
-              {/* Duration badge */}
               <View style={styles.durationBadge}>
                 <Text style={styles.durationText}>{clip.duration}</Text>
               </View>
 
-              {/* Type badge */}
-              <View style={[styles.typeBadge, { backgroundColor: `${clip.color}22`, borderColor: clip.color }]}>
+              <View style={[styles.typeBadge, { backgroundColor: `${clip.color}18`, borderColor: clip.color }]}>
                 <Text style={[styles.typeText, { color: clip.color }]}>{clip.tag}</Text>
               </View>
             </View>
@@ -131,9 +122,6 @@ export default function ClipsScreen() {
   );
 }
 
-const C = 11;
-const B = 1.5;
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -148,9 +136,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxxl + spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
-    backgroundColor: 'rgba(3, 8, 3, 0.88)',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(34, 197, 94, 0.10)',
+    borderBottomColor: colors.divider,
   },
   logoChip: {
     backgroundColor: '#FFFFFF',
@@ -183,18 +171,18 @@ const styles = StyleSheet.create({
   },
   countBadge: {
     alignItems: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.10)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.22)',
+    borderColor: colors.border,
     minWidth: 44,
   },
   countNum: {
     fontSize: 16,
     fontWeight: '900',
-    color: colors.primary,
+    color: colors.text,
     lineHeight: 18,
   },
   countLabel: {
@@ -207,7 +195,7 @@ const styles = StyleSheet.create({
   // ── Filter row
   filterRow: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(34, 197, 94, 0.06)',
+    borderBottomColor: colors.divider,
     maxHeight: 46,
   },
   filterContent: {
@@ -222,9 +210,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.02)',
     gap: 5,
+  },
+  filterChipActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   filterDot: {
     width: 5,
@@ -236,6 +228,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.2,
     color: colors.textDim,
+  },
+  filterLabelActive: {
+    color: colors.text,
   },
 
   // ── Grid
@@ -253,9 +248,9 @@ const styles = StyleSheet.create({
   card: {
     width: '47.5%',
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.10)',
+    borderColor: colors.border,
     overflow: 'hidden',
   },
 
@@ -267,41 +262,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  accentBar: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    height: 2,
-    opacity: 0.7,
-  },
-  corner: {
-    position: 'absolute',
-    width: C,
-    height: C,
-  },
-  cTL: { top: 8, left: 8,   borderTopWidth: B,    borderLeftWidth: B,   borderTopLeftRadius: 3 },
-  cTR: { top: 8, right: 8,  borderTopWidth: B,    borderRightWidth: B,  borderTopRightRadius: 3 },
-  cBL: { bottom: 8, left: 8,  borderBottomWidth: B, borderLeftWidth: B,   borderBottomLeftRadius: 3 },
-  cBR: { bottom: 8, right: 8, borderBottomWidth: B, borderRightWidth: B,  borderBottomRightRadius: 3 },
   playCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
+    borderColor: 'rgba(255,255,255,0.10)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  playIcon: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.70)',
-    marginLeft: 2,
   },
   durationBadge: {
     position: 'absolute',
     bottom: 7,
     right: 7,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.60)',
     borderRadius: 4,
     paddingHorizontal: 5,
     paddingVertical: 2,

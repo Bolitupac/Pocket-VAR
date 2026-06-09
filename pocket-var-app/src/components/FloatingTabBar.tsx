@@ -1,26 +1,20 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  Image,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, radius } from '../theme';
 
 type Tab = {
   route: string;
   label: string;
-  symbol: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
 };
 
 const TABS: Tab[] = [
-  { route: '/',         label: 'CAM',    symbol: '◉' },
-  { route: '/review',   label: 'REVIEW', symbol: '▶' },
-  { route: '/clips',    label: 'CLIPS',  symbol: '⊞' },
-  { route: '/settings', label: 'CONFIG', symbol: '⊛' },
+  { route: '/',         label: 'CAM',    icon: 'record-circle' },
+  { route: '/review',   label: 'REVIEW', icon: 'play-circle' },
+  { route: '/clips',    label: 'CLIPS',  icon: 'filmstrip-box-multiple' },
+  { route: '/settings', label: 'CONFIG', icon: 'cog' },
 ];
 
 export function FloatingTabBar() {
@@ -30,18 +24,6 @@ export function FloatingTabBar() {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <View style={styles.container}>
-
-        {/* Brand seal — white chip with real logo image */}
-        <View style={styles.logoChip}>
-          <Image
-            source={require('../../assets/images/pocket-var-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View style={styles.divider} />
-
         <View style={styles.tabs}>
           {TABS.map((tab) => {
             const active =
@@ -56,11 +38,13 @@ export function FloatingTabBar() {
                 activeOpacity={0.7}
               >
                 {tab.route === '/' ? (
-                  <View style={[styles.recIndicator, active && styles.recIndicatorActive]} />
+                  <View style={[styles.recDot, active && styles.recDotActive]} />
                 ) : (
-                  <Text style={[styles.tabSymbol, active && styles.tabSymbolActive]}>
-                    {tab.symbol}
-                  </Text>
+                  <MaterialCommunityIcons
+                    name={tab.icon}
+                    size={18}
+                    color={active ? colors.text : colors.textDim}
+                  />
                 )}
                 <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
                   {tab.label}
@@ -85,44 +69,15 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    height: 68,
+    height: 64,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(4, 10, 4, 0.94)',
+    backgroundColor: 'rgba(26, 26, 26, 0.96)',
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.25)',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    ...(Platform.OS === 'ios'
-      ? {
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.22,
-          shadowRadius: 20,
-        }
-      : { elevation: 24 }),
-  },
-
-  logoChip: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    width: 60,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  logoImage: {
-    width: 56,
-    height: 40,
-  },
-
-  divider: {
-    width: 1,
-    height: 30,
-    backgroundColor: 'rgba(34, 197, 94, 0.15)',
-    marginHorizontal: 8,
+    borderColor: colors.border,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
   },
 
   tabs: {
@@ -135,44 +90,31 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 2,
+    paddingVertical: 6,
     borderRadius: radius.md,
-    gap: 2,
+    gap: 3,
   },
   tabActive: {
-    backgroundColor: 'rgba(34, 197, 94, 0.10)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
 
-  recIndicator: {
+  recDot: {
     width: 9,
     height: 9,
     borderRadius: 99,
     backgroundColor: colors.textDim,
   },
-  recIndicatorActive: {
+  recDotActive: {
     backgroundColor: colors.recording,
-    shadowColor: colors.recording,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 5,
-  },
-
-  tabSymbol: {
-    fontSize: 12,
-    color: colors.textDim,
-  },
-  tabSymbolActive: {
-    color: colors.primary,
   },
 
   tabLabel: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: '700' as const,
-    letterSpacing: 1.1,
+    letterSpacing: 1.2,
     color: colors.textDim,
   },
   tabLabelActive: {
-    color: colors.primary,
+    color: colors.text,
   },
 });

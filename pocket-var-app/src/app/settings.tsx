@@ -1,4 +1,5 @@
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, radius } from '../theme';
 import { FloatingTabBar } from '../components/FloatingTabBar';
 
@@ -40,10 +41,10 @@ export default function SettingsScreen() {
 
         {/* ── Storage card ───────────────────────── */}
         <View style={styles.sectionLabel}>
-          <View style={[styles.sectionDot, { backgroundColor: colors.foul }]} />
+          <MaterialCommunityIcons name="harddisk" size={12} color={colors.textSecondary} />
           <Text style={styles.sectionTitle}>STORAGE</Text>
         </View>
-        <View style={styles.storageCard}>
+        <View style={styles.card}>
           <View style={styles.storageHeader}>
             <Text style={styles.storageUsed}>{USED_GB} GB used</Text>
             <Text style={styles.storageTotal}>of {TOTAL_GB} GB</Text>
@@ -71,6 +72,7 @@ export default function SettingsScreen() {
           </View>
 
           {/* App breakdown */}
+          <View style={styles.divider} />
           <View style={styles.breakdownList}>
             {APP_BREAKDOWN.map((item) => (
               <View key={item.label} style={styles.breakdownRow}>
@@ -87,41 +89,44 @@ export default function SettingsScreen() {
           </View>
 
           <TouchableOpacity style={styles.deleteBtn} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="delete-outline" size={14} color={colors.recording} />
             <Text style={styles.deleteBtnText}>DELETE ALL RECORDINGS</Text>
-            <Text style={styles.deleteBtnSub}>Saves clips will be kept</Text>
           </TouchableOpacity>
         </View>
 
         {/* ── Video quality ──────────────────────── */}
         <View style={[styles.sectionLabel, { marginTop: spacing.xl }]}>
-          <View style={[styles.sectionDot, { backgroundColor: colors.primary }]} />
+          <MaterialCommunityIcons name="video" size={12} color={colors.textSecondary} />
           <Text style={styles.sectionTitle}>VIDEO QUALITY</Text>
         </View>
         <View style={styles.card}>
-          <View style={styles.pillRow}>
-            {['720p', '1080p', '4K'].map((q) => (
-              <TouchableOpacity
-                key={q}
-                style={[styles.qualityPill, q === '1080p' && styles.qualityPillActive]}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.qualityPillText, q === '1080p' && styles.qualityPillTextActive]}>
-                  {q}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.cardRow}>
+            <Text style={styles.cardRowLabel}>Resolution</Text>
+            <View style={styles.pillRow}>
+              {['720p', '1080p', '4K'].map((q) => (
+                <TouchableOpacity
+                  key={q}
+                  style={[styles.pill, q === '1080p' && styles.pillActive]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.pillText, q === '1080p' && styles.pillTextActive]}>
+                    {q}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-          <View style={styles.cardDivider} />
+          <View style={styles.divider} />
           <View style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Frame Rate</Text>
             <Text style={styles.cardRowValue}>30 fps</Text>
           </View>
-          <View style={styles.cardDivider} />
+          <View style={styles.divider} />
           <View style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Format</Text>
             <Text style={styles.cardRowValue}>H.264 / MP4</Text>
           </View>
-          <View style={styles.cardDivider} />
+          <View style={styles.divider} />
           <View style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Stabilisation</Text>
             <View style={styles.toggleOn}>
@@ -132,24 +137,27 @@ export default function SettingsScreen() {
 
         {/* ── Review window ─────────────────────── */}
         <View style={[styles.sectionLabel, { marginTop: spacing.xl }]}>
-          <View style={[styles.sectionDot, { backgroundColor: colors.offside }]} />
+          <MaterialCommunityIcons name="clock-outline" size={12} color={colors.textSecondary} />
           <Text style={styles.sectionTitle}>REVIEW WINDOW</Text>
         </View>
         <View style={styles.card}>
-          <View style={styles.pillRow}>
-            {['30s', '60s', '120s'].map((s) => (
-              <TouchableOpacity
-                key={s}
-                style={[styles.qualityPill, s === '60s' && styles.qualityPillActive]}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.qualityPillText, s === '60s' && styles.qualityPillTextActive]}>
-                  {s}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.cardRow}>
+            <Text style={styles.cardRowLabel}>Duration</Text>
+            <View style={styles.pillRow}>
+              {['30s', '60s', '120s'].map((s) => (
+                <TouchableOpacity
+                  key={s}
+                  style={[styles.pill, s === '60s' && styles.pillActive]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.pillText, s === '60s' && styles.pillTextActive]}>
+                    {s}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-          <View style={styles.cardDivider} />
+          <View style={styles.divider} />
           <View style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Frame step</Text>
             <Text style={styles.cardRowValue}>33ms (1 frame)</Text>
@@ -158,25 +166,25 @@ export default function SettingsScreen() {
 
         {/* ── Camera ────────────────────────────── */}
         <View style={[styles.sectionLabel, { marginTop: spacing.xl }]}>
-          <View style={[styles.sectionDot, { backgroundColor: colors.textSecondary }]} />
+          <MaterialCommunityIcons name="camera" size={12} color={colors.textSecondary} />
           <Text style={styles.sectionTitle}>CAMERA</Text>
         </View>
         <View style={styles.card}>
           <View style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Facing</Text>
-            <View style={styles.facingRow}>
+            <View style={styles.pillRow}>
               {['Back', 'Front'].map((f) => (
                 <TouchableOpacity
                   key={f}
-                  style={[styles.facingPill, f === 'Back' && styles.facingPillActive]}
+                  style={[styles.pill, f === 'Back' && styles.pillActive]}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.facingText, f === 'Back' && styles.facingTextActive]}>{f}</Text>
+                  <Text style={[styles.pillText, f === 'Back' && styles.pillTextActive]}>{f}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
-          <View style={styles.cardDivider} />
+          <View style={styles.divider} />
           <View style={styles.cardRow}>
             <Text style={styles.cardRowLabel}>Auto-save clips</Text>
             <View style={styles.toggleOn}>
@@ -187,7 +195,7 @@ export default function SettingsScreen() {
 
         {/* ── About ─────────────────────────────── */}
         <View style={[styles.sectionLabel, { marginTop: spacing.xl }]}>
-          <View style={[styles.sectionDot, { backgroundColor: colors.textDim }]} />
+          <MaterialCommunityIcons name="information-outline" size={12} color={colors.textSecondary} />
           <Text style={styles.sectionTitle}>ABOUT</Text>
         </View>
         <View style={styles.card}>
@@ -201,7 +209,7 @@ export default function SettingsScreen() {
                 <Text style={styles.cardRowLabel}>{row.label}</Text>
                 <Text style={styles.cardRowValue}>{row.value}</Text>
               </View>
-              {i < arr.length - 1 && <View style={styles.cardDivider} />}
+              {i < arr.length - 1 && <View style={styles.divider} />}
             </View>
           ))}
         </View>
@@ -237,9 +245,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxxl + spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
-    backgroundColor: 'rgba(3, 8, 3, 0.88)',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(34, 197, 94, 0.10)',
+    borderBottomColor: colors.divider,
   },
   logoChip: {
     backgroundColor: '#FFFFFF',
@@ -286,11 +294,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     paddingLeft: 2,
   },
-  sectionDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-  },
   sectionTitle: {
     fontSize: 9,
     fontWeight: '700',
@@ -298,19 +301,45 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
-  // ── Storage card
-  storageCard: {
+  // ── Cards
+  card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.10)',
-    padding: spacing.lg,
+    borderColor: colors.border,
+    overflow: 'hidden',
   },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 13,
+  },
+  cardRowLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  cardRowValue: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.divider,
+    marginHorizontal: spacing.lg,
+  },
+
+  // Storage
   storageHeader: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
   },
   storageUsed: {
     fontSize: 20,
@@ -329,6 +358,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 4,
+    marginHorizontal: spacing.lg,
   },
   storageBarFill: {
     height: '100%',
@@ -338,6 +368,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   storageBarLabel: {
     fontSize: 9,
@@ -347,6 +378,7 @@ const styles = StyleSheet.create({
   breakdownList: {
     gap: 8,
     marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
   breakdownRow: {
     flexDirection: 'row',
@@ -390,127 +422,66 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   deleteBtn: {
-    backgroundColor: 'rgba(255, 51, 85, 0.08)',
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 51, 85, 0.22)',
-    paddingVertical: 12,
-    paddingHorizontal: spacing.lg,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 51, 85, 0.06)',
+    borderRadius: 0,
+    borderBottomLeftRadius: radius.md,
+    borderBottomRightRadius: radius.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    paddingVertical: 13,
+    paddingHorizontal: spacing.lg,
   },
   deleteBtnText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 1.5,
     color: colors.recording,
   },
-  deleteBtnSub: {
-    fontSize: 9,
-    color: 'rgba(255, 51, 85, 0.50)',
-    marginTop: 2,
-    letterSpacing: 0.5,
-  },
 
-  // ── Generic card
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.10)',
-    overflow: 'hidden',
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 13,
-  },
-  cardRowLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-  },
-  cardRowValue: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: 'rgba(34, 197, 94, 0.06)',
-    marginHorizontal: spacing.lg,
-  },
-
-  // Quality/size pills
+  // Pills
   pillRow: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    gap: 6,
   },
-  qualityPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 7,
+  pill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
-  qualityPillActive: {
-    backgroundColor: 'rgba(34, 197, 94, 0.12)',
-    borderColor: colors.primary,
+  pillActive: {
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
-  qualityPillText: {
-    fontSize: 12,
-    fontWeight: '700',
+  pillText: {
+    fontSize: 11,
+    fontWeight: '600',
     color: colors.textDim,
-    letterSpacing: 0.5,
   },
-  qualityPillTextActive: {
-    color: colors.primary,
+  pillTextActive: {
+    color: colors.text,
   },
 
   // Toggle
   toggleOn: {
-    backgroundColor: 'rgba(34, 197, 94, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.28)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   toggleOnText: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
-    color: colors.primary,
-  },
-
-  // Facing
-  facingRow: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  facingPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-  },
-  facingPillActive: {
-    backgroundColor: 'rgba(34, 197, 94, 0.12)',
-    borderColor: colors.primary,
-  },
-  facingText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textDim,
-  },
-  facingTextActive: {
-    color: colors.primary,
+    color: colors.text,
   },
 
   // Footer
@@ -522,7 +493,7 @@ const styles = StyleSheet.create({
   footerLogo: {
     width: 80,
     height: 80,
-    opacity: 0.10,
+    opacity: 0.08,
   },
   footerTag: {
     fontSize: 10,
